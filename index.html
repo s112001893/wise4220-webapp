@@ -16,6 +16,7 @@
         .chart-container { position: relative; height: 180px; width: 100%; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #09f; animation: spin 1s ease infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .history-btn.active { background-color: #3b82f6; color: white; }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center min-h-screen">
@@ -23,6 +24,7 @@
     <!-- 手機螢幕模擬 -->
     <div class="w-full max-w-sm h-[85vh] max-h-[800px] min-h-[680px] mx-auto bg-gray-50 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         
+        <!-- **重新設計的佈局** -->
         <main id="main-container" class="flex flex-col h-full transition-all duration-1000 ease-in-out">
             
             <!-- 頂部標題 (固定高度) -->
@@ -32,14 +34,12 @@
                     <p id="date-time" class="text-sm text-gray-500">正在載入日期...</p>
                 </div>
                 <div class="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </div>
             </header>
 
             <!-- 即時數據顯示 (彈性填滿剩餘空間) -->
-            <section class="flex-grow flex flex-col items-center justify-center text-center px-6">
+            <section class="flex-grow flex flex-col items-center justify-center text-center px-6 min-h-0">
                 <div id="temp-display" class="relative w-48 h-48 rounded-full flex items-center justify-center shadow-inner transition-all duration-1000 ease-in-out flex-shrink-0">
                     <div class="absolute inset-0 rounded-full shadow-xl"></div>
                     <div class="z-10">
@@ -47,32 +47,23 @@
                         <p class="font-medium text-lg text-gray-600">°C</p>
                     </div>
                 </div>
-
-                <div class="mt-8 text-lg font-medium text-gray-700">
-                    <p>濕度: <span id="current-humidity" class="font-bold">--</span>%</p>
-                </div>
-                 <div class="mt-2 text-sm text-gray-500">
-                    <p id="status-text">正在連接感應器...</p>
-                </div>
-                
-                <div class="mt-6">
-                    <button id="gemini-btn" class="px-6 py-2 bg-white/80 backdrop-blur-sm text-gray-700 font-semibold rounded-full shadow-md hover:bg-white transition-all transform hover:scale-105">
-                        ✨ 獲取智能建議
-                    </button>
-                </div>
+                <div class="mt-8 text-lg font-medium text-gray-700"><p>濕度: <span id="current-humidity" class="font-bold">--</span>%</p></div>
+                <div class="mt-2 text-sm text-gray-500"><p id="status-text">正在連接感應器...</p></div>
+                <div class="mt-6"><button id="gemini-btn" class="px-6 py-2 bg-white/80 backdrop-blur-sm text-gray-700 font-semibold rounded-full shadow-md hover:bg-white transition-all transform hover:scale-105">✨ 獲取智能建議</button></div>
             </section>
 
             <!-- 歷史數據圖表 (固定高度) -->
             <section class="p-6 pt-0 flex-shrink-0">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-lg font-semibold text-gray-800">歷史數據</h2>
-                    <button id="gemini-trend-btn" class="px-4 py-1 text-xs bg-white/70 backdrop-blur-sm text-gray-600 font-semibold rounded-full shadow-sm hover:bg-white transition-all">
-                        ✨ 分析趨勢
-                    </button>
+                    <button id="gemini-trend-btn" class="px-4 py-1 text-xs bg-white/70 backdrop-blur-sm text-gray-600 font-semibold rounded-full shadow-sm hover:bg-white transition-all">✨ 分析趨勢</button>
                 </div>
                 <div class="p-4 bg-white/60 rounded-2xl shadow-md backdrop-blur-sm">
-                    <div class="chart-container">
-                        <canvas id="historyChart"></canvas>
+                    <div class="chart-container"><canvas id="historyChart"></canvas></div>
+                    <div id="history-controls" class="mt-3 flex justify-center space-x-2">
+                        <button class="history-btn px-3 py-1 text-xs bg-gray-200 text-gray-600 font-semibold rounded-full hover:bg-gray-300 transition-all" data-timespan="hour">過去 1 小時</button>
+                        <button class="history-btn px-3 py-1 text-xs bg-gray-200 text-gray-600 font-semibold rounded-full hover:bg-gray-300 transition-all" data-timespan="day">過去 24 小時</button>
+                        <button id="live-btn" class="history-btn px-3 py-1 text-xs bg-gray-200 text-gray-600 font-semibold rounded-full hover:bg-gray-300 transition-all active">🔴 即時</button>
                     </div>
                 </div>
             </section>
@@ -104,154 +95,47 @@
     const geminiModal = document.getElementById('gemini-modal');
     const geminiContent = document.getElementById('gemini-content');
     const closeModalBtn = document.getElementById('close-modal-btn');
+    const historyControls = document.getElementById('history-controls');
+    const liveBtn = document.getElementById('live-btn');
 
     let historyChart;
     let currentTemp = 25.3;
     let currentHumidity = 58;
-    let tempData = [];
-    let humidityData = [];
-    let timeLabels = [];
+    let isLiveMode = true;
 
-    // --- 核心功能 ---
-
-    function updateAppearance(temp) {
-        let bgColor, shadowColor, gradientFrom, gradientTo, statusText;
-        const tempMin = 15, tempMax = 35, hueMin = 220, hueMax = 0;
-        const clampedTemp = Math.max(tempMin, Math.min(tempMax, temp));
-        const tempRatio = (clampedTemp - tempMin) / (tempMax - tempMin);
-        const hue = hueMin - (hueMin - hueMax) * tempRatio;
-        const lightness = temp > 28 ? 85 : 95;
-        const saturation = temp > 28 ? 65 : 60;
-        
-        bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-        shadowColor = `hsl(${hue}, ${saturation-10}%, ${lightness-10}%)`;
-        gradientFrom = `hsl(${hue}, 80%, 60%)`;
-        gradientTo = `hsl(${(hue + 30) % 360}, 80%, 50%)`;
-        
-        if (temp > 30) statusText = "有點熱";
-        else if (temp > 28) statusText = "天氣溫暖";
-        else if (temp < 18) statusText = "有點涼";
-        else statusText = "體感舒適";
-
-        mainContainer.style.backgroundColor = bgColor;
-        tempDisplay.style.backgroundColor = `hsl(${hue}, ${saturation}%, 98%)`;
-        tempDisplay.style.boxShadow = `0 0 40px ${shadowColor}`;
-        currentTempEl.style.backgroundImage = `linear-gradient(45deg, ${gradientFrom}, ${gradientTo})`;
-        statusTextEl.textContent = statusText;
-    }
-
-    function updateChartScales(chart, tempData, humidityData) {
-        if (tempData.length < 2) return;
-        const tempMin = Math.min(...tempData);
-        const tempMax = Math.max(...tempData);
-        const humidityMin = Math.min(...humidityData);
-        const humidityMax = Math.max(...humidityData);
-        const tempPadding = (tempMax - tempMin) * 0.2 || 0.5;
-        const humidityPadding = (humidityMax - humidityMin) * 0.2 || 2;
-        chart.options.scales.y_temp.min = Math.floor(tempMin - tempPadding);
-        chart.options.scales.y_temp.max = Math.ceil(tempMax + tempPadding);
-        chart.options.scales.y_humidity.min = Math.floor(humidityMin - humidityPadding);
-        chart.options.scales.y_humidity.max = Math.ceil(humidityMax + humidityPadding);
-    }
-
-    function updateChart(chart, label, newTemp, newHumidity) {
-        const dataset0 = chart.data.datasets[0].data;
-        const dataset1 = chart.data.datasets[1].data;
-        
-        chart.data.labels.push(label);
-        dataset0.push(newTemp);
-        dataset1.push(newHumidity);
-
-        if (chart.data.labels.length > 12) {
-            chart.data.labels.shift();
-            dataset0.shift();
-            dataset1.shift();
-        }
-        
-        updateChartScales(chart, dataset0, dataset1);
-        chart.update('none');
-    }
-
-    function setupChart() {
-        const ctx = document.getElementById('historyChart').getContext('2d');
-        historyChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: timeLabels,
-                datasets: [{
-                    label: '溫度 (°C)', data: tempData, borderColor: 'rgb(255, 99, 132)', backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                    fill: true, tension: 0.4, yAxisID: 'y_temp',
-                }, {
-                    label: '濕度 (%)', data: humidityData, borderColor: 'rgb(54, 162, 235)', backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    fill: true, tension: 0.4, yAxisID: 'y_humidity',
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-                scales: {
-                    x: { grid: { display: false } },
-                    y_temp: {
-                        type: 'linear', display: true, position: 'left',
-                        title: { display: true, text: '溫度 (°C)', color: 'rgb(255, 99, 132)' },
-                        ticks: { color: 'rgb(255, 99, 132)' }
-                    },
-                    y_humidity: {
-                        type: 'linear', display: true, position: 'right',
-                        title: { display: true, text: '濕度 (%)', color: 'rgb(54, 162, 235)' },
-                        ticks: { color: 'rgb(54, 162, 235)' },
-                        grid: { drawOnChartArea: false },
-                    }
-                }
-            }
-        });
-    }
+    // --- 核心功能 (此處省略部分函式以保持簡潔) ---
+    function updateAppearance(temp) { /* ... */ }
+    function updateChartScales(chart, tempData, humidityData) { /* ... */ }
+    function setupChart() { /* ... */ }
+    function updateDateTime() { /* ... */ }
+    async function callGemini(prompt, title) { /* ... */ }
+    function getGeminiSuggestion() { /* ... */ }
+    function getGeminiTrendAnalysis() { /* ... */ }
     
-    function updateDateTime() {
-        const now = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-        dateTimeEl.textContent = now.toLocaleDateString('zh-TW', options);
-    }
+    // 省略的函式定義
+    updateAppearance = (temp) => { let bgColor, shadowColor, gradientFrom, gradientTo, statusText; const tempMin = 15, tempMax = 35, hueMin = 220, hueMax = 0; const clampedTemp = Math.max(tempMin, Math.min(tempMax, temp)); const tempRatio = (clampedTemp - tempMin) / (tempMax - tempMin); const hue = hueMin - (hueMin - hueMax) * tempRatio; const lightness = temp > 28 ? 85 : 95; const saturation = temp > 28 ? 65 : 60; bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`; shadowColor = `hsl(${hue}, ${saturation-10}%, ${lightness-10}%)`; gradientFrom = `hsl(${hue}, 80%, 60%)`; gradientTo = `hsl(${(hue + 30) % 360}, 80%, 50%)`; if (temp > 30) statusText = "有點熱"; else if (temp > 28) statusText = "天氣溫暖"; else if (temp < 18) statusText = "有點涼"; else statusText = "體感舒適"; mainContainer.style.backgroundColor = bgColor; tempDisplay.style.backgroundColor = `hsl(${hue}, ${saturation}%, 98%)`; tempDisplay.style.boxShadow = `0 0 40px ${shadowColor}`; currentTempEl.style.backgroundImage = `linear-gradient(45deg, ${gradientFrom}, ${gradientTo})`; statusTextEl.textContent = statusText; };
+    updateChartScales = (chart, tempData, humidityData) => { if (!tempData || tempData.length < 2) return; const tempMin = Math.min(...tempData); const tempMax = Math.max(...tempData); const humidityMin = Math.min(...humidityData); const humidityMax = Math.max(...humidityData); const tempPadding = (tempMax - tempMin) * 0.2 || 0.5; const humidityPadding = (humidityMax - humidityMin) * 0.2 || 2; chart.options.scales.y_temp.min = Math.floor(tempMin - tempPadding); chart.options.scales.y_temp.max = Math.ceil(tempMax + tempPadding); chart.options.scales.y_humidity.min = Math.floor(humidityMin - humidityPadding); chart.options.scales.y_humidity.max = Math.ceil(humidityMax + humidityPadding); };
+    setupChart = () => { const ctx = document.getElementById('historyChart').getContext('2d'); historyChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: '溫度 (°C)', data: [], borderColor: 'rgb(255, 99, 132)', backgroundColor: 'rgba(255, 99, 132, 0.1)', fill: true, tension: 0.4, yAxisID: 'y_temp', }, { label: '濕度 (%)', data: [], borderColor: 'rgb(54, 162, 235)', backgroundColor: 'rgba(54, 162, 235, 0.1)', fill: true, tension: 0.4, yAxisID: 'y_humidity', }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } }, scales: { x: { grid: { display: false } }, y_temp: { type: 'linear', display: true, position: 'left', title: { display: true, text: '溫度 (°C)', color: 'rgb(255, 99, 132)' }, ticks: { color: 'rgb(255, 99, 132)' } }, y_humidity: { type: 'linear', display: true, position: 'right', title: { display: true, text: '濕度 (%)', color: 'rgb(54, 162, 235)' }, ticks: { color: 'rgb(54, 162, 235)' }, grid: { drawOnChartArea: false }, } } } }); };
+    updateDateTime = () => { const now = new Date(); const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }; dateTimeEl.textContent = now.toLocaleDateString('zh-TW', options); };
+    callGemini = async (prompt, title) => { geminiModal.classList.remove('hidden'); geminiContent.innerHTML = `<div class="flex justify-center items-center"><div class="spinner"></div></div><p class="mt-4 text-gray-600 font-medium">✨ Gemini 正在為您分析...</p>`; const apiKey = ""; const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`; const payload = { contents: [{ parts: [{ text: prompt }] }] }; try { const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (!response.ok) throw new Error(`API 請求失敗`); const result = await response.json(); const suggestion = result.candidates[0].content.parts[0].text; geminiContent.innerHTML = `<h3 class="text-lg font-bold text-gray-800 mb-3">${title}</h3><p class="text-gray-700 text-left">${suggestion.replace(/\n/g, '<br>')}</p>`; } catch (error) { console.error("Gemini API Error:", error); geminiContent.innerHTML = `<h3 class="text-lg font-bold text-red-600 mb-3">出錯了</h3><p class="text-gray-700">無法獲取分析結果，請稍後再試。</p>`; } };
+    getGeminiSuggestion = () => { const prompt = `你是一個智能家居助手。請根據當前室內溫度為 ${currentTemp}°C，濕度為 ${currentHumidity}% 的情況，用繁體中文提供一條簡潔、友好、實用的建議。建議內容可以關於健康、舒適度、活動或穿著。請將回覆限制在50個字以內，並且語氣要親切。`; callGemini(prompt, '✨ 智能建議'); };
+    getGeminiTrendAnalysis = () => { if (historyChart.data.datasets[0].data.length < 3) { geminiModal.classList.remove('hidden'); geminiContent.innerHTML = `<h3 class="text-lg font-bold text-gray-800 mb-3">資料不足</h3><p class="text-gray-700">需要更多歷史數據才能進行分析，請稍待片刻。</p>`; return; } const dataString = historyChart.data.datasets[0].data.map((temp, index) => `(${historyChart.data.labels[index]}: ${temp}°C, ${historyChart.data.datasets[1].data[index]}%)`).join(', '); const prompt = `你是一位專業的數據分析師和智能家居顧問。請根據以下室內溫濕度數據序列，用繁體中文進行分析。數據格式為 (時間: 溫度, 濕度)。數據: ${dataString}。請提供一個簡潔、條理分明的摘要，包含：1. **整體趨勢**。2. **舒適度分析**。3. **實用建議**。總長度在100字左右。`; callGemini(prompt, '✨ 歷史趨勢分析'); };
 
-    async function callGemini(prompt, title) {
-        geminiModal.classList.remove('hidden');
-        geminiContent.innerHTML = `<div class="flex justify-center items-center"><div class="spinner"></div></div><p class="mt-4 text-gray-600 font-medium">✨ Gemini 正在為您分析...</p>`;
-        const apiKey = "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        const payload = { contents: [{ parts: [{ text: prompt }] }] };
-        try {
-            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error(`API 請求失敗`);
-            const result = await response.json();
-            const suggestion = result.candidates[0].content.parts[0].text;
-            geminiContent.innerHTML = `<h3 class="text-lg font-bold text-gray-800 mb-3">${title}</h3><p class="text-gray-700 text-left">${suggestion.replace(/\n/g, '<br>')}</p>`;
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            geminiContent.innerHTML = `<h3 class="text-lg font-bold text-red-600 mb-3">出錯了</h3><p class="text-gray-700">無法獲取分析結果，請稍後再試。</p>`;
+    function updateChart(label, newTemp, newHumidity) {
+        if (!isLiveMode) return;
+        const labels = historyChart.data.labels;
+        const tempData = historyChart.data.datasets[0].data;
+        const humidityData = historyChart.data.datasets[1].data;
+        labels.push(label);
+        tempData.push(newTemp);
+        humidityData.push(newHumidity);
+        if (labels.length > 12) {
+            labels.shift();
+            tempData.shift();
+            humidityData.shift();
         }
-    }
-
-    function getGeminiSuggestion() {
-        const prompt = `你是一個智能家居助手。請根據當前室內溫度為 ${currentTemp}°C，濕度為 ${currentHumidity}% 的情況，用繁體中文提供一條簡潔、友好、實用的建議。建議內容可以關於健康、舒適度、活動或穿著。請將回覆限制在50個字以內，並且語氣要親切。`;
-        callGemini(prompt, '✨ 智能建議');
-    }
-
-    function getGeminiTrendAnalysis() {
-        if (tempData.length < 3) {
-            geminiModal.classList.remove('hidden');
-            geminiContent.innerHTML = `<h3 class="text-lg font-bold text-gray-800 mb-3">資料不足</h3><p class="text-gray-700">需要更多歷史數據才能進行分析，請稍待片刻。</p>`;
-            return;
-        }
-        const dataString = tempData.map((temp, index) => `(${timeLabels[index]}: ${temp}°C, ${humidityData[index]}%)`).join(', ');
-        const prompt = `你是一位專業的數據分析師和智能家居顧問。請根據過去一小時內的以下室內溫濕度數據序列，用繁體中文進行分析。數據格式為 (時間: 溫度, 濕度)。數據: ${dataString}。
-
-請提供一個簡潔、條理分明的摘要，包含以下幾點：
-1.  **整體趨勢**：明確指出溫度和濕度的主要變化趨勢。
-2.  **舒適度分析**：根據這個趨勢，分析對人體舒適度的影響。
-3.  **實用建議**：基於分析結果，提供一條具體的建議。
-
-請讓回覆專業、易於理解，總長度在100字左右。`;
-        callGemini(prompt, '✨ 歷史趨勢分析');
+        updateChartScales(historyChart, tempData, humidityData);
+        historyChart.update('none');
     }
 
     function onNewDataReceived(data) {
@@ -263,9 +147,33 @@
             currentHumidityEl.textContent = currentHumidity;
             updateAppearance(currentTemp);
             const timeLabel = new Date(data.timestamp || Date.now()).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-            updateChart(historyChart, timeLabel, currentTemp, currentHumidity);
+            updateChart(timeLabel, currentTemp, currentHumidity);
         } else {
             console.error("收到的數據格式不正確:", data);
+        }
+    }
+
+    async function fetchAndDisplayHistory(timespan) {
+        isLiveMode = false;
+        statusTextEl.textContent = `正在查詢過去 ${timespan === 'hour' ? '1' : '24'} 小時數據...`;
+        try {
+            const response = await fetch(`${FUNCTION_APP_URL}/api/getHistory?timespan=${timespan}`);
+            if (!response.ok) throw new Error(`獲取歷史數據失敗: ${response.statusText}`);
+            const data = await response.json();
+            historyChart.data.labels = [];
+            historyChart.data.datasets[0].data = [];
+            historyChart.data.datasets[1].data = [];
+            data.forEach(d => {
+                historyChart.data.labels.push(new Date(d.timestamp).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+                historyChart.data.datasets[0].data.push(d.temp1);
+                historyChart.data.datasets[1].data.push(d.rh1);
+            });
+            updateChartScales(historyChart, historyChart.data.datasets[0].data, historyChart.data.datasets[1].data);
+            historyChart.update();
+            statusTextEl.textContent = `顯示過去 ${timespan === 'hour' ? '1' : '24'} 小時數據`;
+        } catch (error) {
+            console.error("獲取歷史數據時出錯:", error);
+            statusTextEl.textContent = "查詢歷史數據失敗";
         }
     }
 
@@ -292,11 +200,27 @@
     geminiBtn.addEventListener('click', getGeminiSuggestion);
     geminiTrendBtn.addEventListener('click', getGeminiTrendAnalysis);
     closeModalBtn.addEventListener('click', () => geminiModal.classList.add('hidden'));
-    geminiModal.addEventListener('click', (e) => {
-        if (e.target === geminiModal) {
-            geminiModal.classList.add('hidden');
+    geminiModal.addEventListener('click', (e) => { if (e.target === geminiModal) { geminiModal.classList.add('hidden'); } });
+
+    historyControls.addEventListener('click', (e) => {
+        if (e.target.classList.contains('history-btn')) {
+            historyControls.querySelectorAll('.history-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            const timespan = e.target.dataset.timespan;
+            if (timespan) {
+                fetchAndDisplayHistory(timespan);
+            }
         }
     });
+
+    liveBtn.addEventListener('click', () => {
+        isLiveMode = true;
+        statusTextEl.textContent = "已連接到感應器";
+        historyChart.data.labels = [];
+        historyChart.data.datasets.forEach(dataset => dataset.data = []);
+        historyChart.update();
+    });
+
 
     // --- 初始化 ---
     window.onload = () => {
